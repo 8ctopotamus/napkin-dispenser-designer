@@ -1,21 +1,33 @@
 <template>
   <div id="app">
-    <canvas ref="c1" id="c1" width="576" height="384"></canvas>
+    <link rel="stylesheet" :href="`https://fonts.googleapis.com/css?family=${fontFamily}`">
 
-    <input type="text" v-model="text" />
-    <button @click="addText" type="button" name="add-text">Add text</button>
+    <div class="grid-container">
+      <div class="toolbar-column">
+        <h3>Add Text</h3>
+        <label for="text">Text</label>
+        <input type="text" name="text" v-model="text" />
 
-    <select>
-      <option value="Lato">Lato</option>
-      <option value="Pacifico">Pacifico</option>
-    </select>
+        <label for="font-family">Font family</label>
+        <select v-model="fontFamily" name="font-family">
+          <option v-for="family in fontFamilies" :key="family">{{family}}</option>
+        </select>
 
-    <label for="font-size">Font size</label>
-    <input type="number" name="font-size" v-model="fontSize">
-    <input type="range" name="font-size" v-model="fontSize">
+        <label for="font-size">Font size</label>
+        <input type="number" name="font-size" v-model="fontSize">
+        <input type="range" name="font-size" v-model="fontSize">
 
-    <file-upload @fileChanged="imageObj = $event"></file-upload>
-    <button type="button" name="Add image" @click="addImage">Add image</button>
+        <button @click="addText" type="button" name="add-text">Add text</button>
+
+        <h3>Add Image</h3>
+        <file-upload @fileChanged="imageObj = $event" ref="fileUpload"></file-upload>
+        <button type="button" name="Add image" @click="addImage">Add image</button>
+      </div>
+      <div class="canvas-column">
+        <canvas ref="c1" id="c1" width="576" height="384"></canvas>
+      </div>
+    </div>
+
   </div>
 </template>
 
@@ -32,8 +44,9 @@ export default {
   },
   data () {
     return {
-      text: 'Add text',
+      text: 'Your text',
       fontFamily: 'Lato',
+      fontFamilies: ['Pacifico', 'Lato', 'Sarina'],
       fontSize: 16,
       imageObj: ''
     }
@@ -41,25 +54,29 @@ export default {
   mounted () {
     const canvas = new fabric.Canvas('c1', { backgroundColor: "white" })
     this.canvas = canvas
-
-    canvas.selectionColor = 'rgba(0,255,0,0.3)';
-    canvas.add(new fabric.Circle({ radius: 30, fill: '#f55', top: 100, left: 100 }));
-    canvas.selectionBorderColor = 'red';
-    canvas.selectionLineWidth = 5;
-
+    this.canvas.setOverlayImage(require('./assets/art-area.png'), this.canvas.renderAll.bind(this.canvas))
+    // window.addEventListener('mousemove',this.removeObject);
+  },
+  destroyed: function() {
+    // window.removeEventListener('mousemove', this.removeObject);
   },
   methods: {
     addImage () {
       new fabric.Image.fromURL(this.imageObj, (img) => {
         this.canvas.add(img)
       })
+      this.$refs.fileUpload.clearImageData()
     },
     addText () {
       this.canvas.add(new fabric.IText(this.text, {
         fontFamily: this.fontFamily,
+        fontSize: this.fontSize,
         left: 100,
         top: 100
       }))
+    },
+    removeObject() {
+      this.canvas.remove(this.canvas.getActiveObject())
     }
   }
 }
@@ -67,13 +84,26 @@ export default {
 
 <style>
 #app {
+  display: block;
+  margin: 60px auto;
+  max-width: 800px;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  margin-top: 60px;
-  margin-bottom: 60px;
 }
-canvas {
-  box-shadow: 0px 0px 3px rgba(0,0,0,.25);
+
+.grid-container {
+  display: grid;
+  grid-template-columns: 1fr 576px;
+  grid-column-gap: 30px;
+}
+
+.toolbar-column {
+  display: flex;
+  flex-direction: column;
+}
+
+canvas#c1 {
+  box-shadow: 0px 0px 6px rgba(0,0,0,.35);
 }
 button {
   background: #006245;

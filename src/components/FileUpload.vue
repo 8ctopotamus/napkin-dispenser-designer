@@ -18,6 +18,9 @@ export default {
     }
   },
   methods: {
+    clearImageData () {
+      this.imageData = ''
+    },
     previewImage: function(event) {
       // Reference to the DOM input element
       var input = event.target;
@@ -30,12 +33,15 @@ export default {
           // Note: arrow function used here, so that "this.imageData" refers to the imageData of Vue component
           // Read image as base64 and set to imageData
           this.imageData = e.target.result;
-          this.$emit('fileChanged', e.target.result)
         }
         // Start the reader job - read file as a data url (base64 format)
         reader.readAsDataURL(input.files[0]);
-        // pass url to parent Add image button
       }
+    }
+  },
+  watch: {
+    imageData(val) {
+      return this.$emit('fileChanged', val)
     }
   }
 }
@@ -43,7 +49,6 @@ export default {
 
 <style>
 .file-upload-form, .image-preview {
-  font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
   padding: 20px;
 }
 img.preview {
