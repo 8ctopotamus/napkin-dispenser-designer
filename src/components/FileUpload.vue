@@ -1,7 +1,7 @@
 <template>
   <div class="file-upload">
     <div class="file-upload-form">Upload an image file:
-      <input type="file" @change="previewImage" accept="image/*">
+      <input ref="fileInput" type="file" @change="previewImage" accept="image/*">
     </div>
     <div class="image-preview" v-if="imageData.length > 0">
       <img class="preview" :src="imageData">
@@ -20,6 +20,7 @@ export default {
   methods: {
     clearImageData () {
       this.imageData = ''
+      this.$refs.fileInput.files = null
     },
     previewImage: function(event) {
       // Reference to the DOM input element
@@ -48,8 +49,9 @@ export default {
 </script>
 
 <style>
-.file-upload-form, .image-preview {
-  padding: 20px;
+/* .file-upload-form,  */
+.image-preview {
+  padding: 2px;
 }
 img.preview {
   width: 200px;
