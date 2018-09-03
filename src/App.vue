@@ -12,18 +12,14 @@
         <accordion title="Text">
           <label for="text">Text</label>
           <input type="text" name="text" v-model="text" class="form-control" />
-
           <label for="font-family">Font family</label>
           <select v-model="fontFamily" name="font-family" class="form-control">
             <option v-for="family in fontFamilies" :key="family" :style="`font-family: ${family};`" :label="family">{{family}}</option>
           </select>
-
           <label for="font-size">Font size</label>
           <input type="number" name="font-size" v-model="fontSize" class="form-control">
           <input type="range" name="font-size" v-model="fontSize">
-
           <chrome-picker :value="color" @input="updateColor"></chrome-picker>
-
           <button @click="addText" type="button" name="add-text" class="btn btn-block">Add text</button>
         </accordion>
 
@@ -36,11 +32,19 @@
       <div class="canvas-column">
         <canvas ref="c1" id="c1" width="576" height="384"></canvas>
 
-        <button type="button" name="delete-object" @click="removeObject" :disabled="!isActiveObject">
-          <i class="fas fa-trash-alt"></i>
-        </button>
+        <div class="canvas-toolbar">
+          <button type="button" name="bring-forward" title="Bring forward" @click="sortLayer('up')" :disabled="!isActiveObject" class="btn">
+            <i class="fas fa-sort-up"></i>
+          </button>
+          <button type="button" name="send-backwards" title="Send backwards" @click="sortLayer('down')" :disabled="!isActiveObject" class="btn">
+            <i class="fas fa-sort-down"></i>
+          </button>
+          <button type="button" name="delete-object" title="Delete object" @click="removeObject" :disabled="!isActiveObject" class="btn">
+            <i class="fas fa-trash-alt"></i>
+          </button>
+          <button @click="save" type="button" name="save" class="btn">Save</button>
+        </div>
 
-        <button @click="save" type="button" name="save" class="btn btn-lg btn-block" style="margin-top: 12px;">Save</button>
       </div>
     </div>
 
@@ -105,7 +109,6 @@ export default {
     this.canvas = new fabric.Canvas('c1', { backgroundColor: "white" })
     this.canvas.setOverlayImage(require('./assets/art-boundaries.png'), this.canvas.renderAll.bind(this.canvas))
     this.canvas.on('mouse:down', this.checkActiveObject)
-
     // window.addEventListener('keydown', this.removeObject);
   },
   destroyed: function() {
@@ -157,6 +160,18 @@ export default {
       this.canvas.setBackgroundColor(this.color)
       this.canvas.renderAll()
     },
+    sortLayer(direction) {
+      const ao = this.canvas.getActiveObject()
+      if (ao) {
+        if (direction === 'up') {
+          this.canvas.bringForward(ao)
+        }
+        if (direction === 'down') {
+          this.canvas.sendBackwards(ao)
+        }
+        this.canvas.renderAll()
+      }
+    },
     updateColor (color) {
       this.color = color.hex
       if (this.canvas.getActiveObject()) {
@@ -188,6 +203,17 @@ export default {
 canvas#c1 {
   box-shadow: 0px 0px 6px rgba(0,0,0,.35);
   margin-bottom: 25px;
+}
+.canvas-toolbar {
+  display: flex;
+  margin-top: 15px;
+}
+.canvas-toolbar button {
+  margin-right: 5px;
+}
+.canvas-toolbar button[name="save"] {
+  margin-left: auto;
+  margin-right: 0;
 }
 button {
   background: #006245;
