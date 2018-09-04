@@ -1,7 +1,7 @@
 <template>
   <div id="app">
     <div class="grid-container">
-      <div class="toolbar-column">
+      <div class="add-column">
         <accordion title="Canvas">
           <chrome-picker :value="color" @input="updateColor"></chrome-picker>
           <button type="button" name="set-background-color" @click="setCanvasBackgroundColor" class="btn btn-block">
@@ -27,6 +27,18 @@
           <file-upload @fileChanged="imageObj = $event" ref="fileUpload"></file-upload>
           <button type="button" name="Add image" @click="addImage" :disabled="imageObj === ''" class="btn btn-block">Add image</button>
         </accordion>
+
+        <!-- <accordion title="Shapes">
+          <button type="button" name="add-circle" @click="addShape('circle')" class="btn">
+            <i class="fas fa-circle"></i>
+          </button>
+          <button type="button" name="add-square" @click="addShape('square')" class="btn">
+            <i class="fas fa-square"></i>
+          </button>
+          <button type="button" name="add-polygon" @click="addShape('polygon')" class="btn">
+            Poly
+          </button>
+        </accordion> -->
       </div>
 
       <div class="canvas-column">
@@ -59,6 +71,9 @@ import Accordion from './components/Accordion.vue'
 import { saveAs } from 'file-saver'
 import canvasToBlob from 'canvas-toBlob'
 import { Chrome } from 'vue-color'
+
+let artAreaImg = require('./assets/art-area.png')
+
 var colors = {
   hex: '#194d33',
   hsl: { h: 150, s: 0.5, l: 0.2, a: 1 },
@@ -120,6 +135,9 @@ export default {
       this.$refs.fileUpload.clearImageData()
       this.imageObj = ''
     },
+    addShape (shape) {
+
+    },
     addText () {
       this.canvas.add(new fabric.IText(this.text, {
         fontFamily: this.fontFamily,
@@ -142,6 +160,40 @@ export default {
       this.isActiveObject = false
     },
     save () {
+      // var radius = 100;
+      //
+      // fabric.Image.fromURL('http://fabricjs.com/assets/pug_small.jpg', (img) => {
+      //   img.scale(0.5).set({
+      //     left: 100,
+      //     top: 100,
+      //     angle: -15,
+      //     clipTo: function (ctx) {
+      //       ctx.arc(0, 0, radius, 0, Math.PI * 2, true);
+      //     }
+      //   });
+      //   this.canvas.add(img).setActiveObject(img);
+      //
+      //   this.canvas.clipTo = function(ctx) {
+      //     img.render(ctx);
+      //   };
+      // })
+
+      // fabric.Image.fromURL(artAreaImg, img => {
+      //   this.canvas.add(img)
+      //   this.canvas.clipTo = function(ctx) {
+      //     console.log(ctx)
+      //     img.render(ctx);
+      //   };
+      //   this.canvas.renderAll()
+      // })
+
+      // var shape = this.canvas.item(0);
+      // this.canvas.remove(shape);
+      // this.canvas.clipTo = function(ctx) {
+      //   shape.render(ctx);
+      // };
+
+
       // this.canvas.setOverlayImage(require('./assets/art-area.png'), this.canvas.renderAll.bind(this.canvas))
 
       // const shape = this.canvas.overlayImage
@@ -151,6 +203,8 @@ export default {
       // this.canvas.clipTo = function(ctx) {
       //   shape.render(ctx);
       // };
+
+      // this.canvas.renderAll()
 
       this.$refs.c1.toBlob(blob => {
         saveAs(blob, 'my-design.png')
@@ -196,7 +250,7 @@ export default {
   grid-template-columns: 1fr 576px;
   grid-column-gap: 25px;
 }
-.toolbar-column {
+.add-column {
   display: flex;
   flex-direction: column;
 }
