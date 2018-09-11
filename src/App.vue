@@ -66,9 +66,11 @@
           <button type="button" name="delete-object" title="Delete object" @click="removeObject" :disabled="!isActiveObject" class="btn">
             <i class="fas fa-trash-alt"></i>
           </button>
+          <button type="button" name="unselect-object" title="Delete object" @click="deselectObject" :disabled="!isActiveObject" class="btn">
+            Deselect Object
+          </button>
           <button @click="save" type="button" name="save" class="btn">Save</button>
         </div>
-
         <h5 v-if="layers.length > 0" class="layers-title">Layers:</h5>
         <div v-for="(layer, i) in layers" :key="i" class="layer">
           {{layer.type}}
@@ -255,6 +257,10 @@ export default {
 
       this.getLayers()
     },
+    deselectObject () {
+      this.canvas.discardActiveObject()
+      this.canvas.renderAll()
+    },
     checkActiveObject (options) {
       if (options.target) {
         this.isActiveObject = true
@@ -277,16 +283,11 @@ export default {
       resizedCanvas.height = "288"
       resizedCanvas.width = "432"
 
-
-      this.canvas.overlayImage = null;
-      this.canvas.renderAll.bind(this.canvas);
-
-
+      // remove overlay image for saving
       this.canvas.setOverlayImage(null, this.canvas.renderAll.bind(this.canvas))
 
       var canvas = document.getElementById("c1")
       var context = canvas.getContext("2d")
-
 
       resizedContext.drawImage(canvas, 0, 0, 432, 288)
       resizedCanvas.toBlob(blob => {
