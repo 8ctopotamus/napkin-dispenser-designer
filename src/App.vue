@@ -1,7 +1,7 @@
 <template>
   <div id="app">
-    <div class="grid-container">
-      <div class="add-column">
+    <div class="row">
+      <div class="col-sm-12 col-md-6">
         <accordion title="Canvas">
           <chrome-picker :value="color" @input="updateColor"></chrome-picker>
           <button type="button" name="set-background-color" @click="setCanvasBackgroundColor" class="btn btn-block">
@@ -41,8 +41,8 @@
         </accordion>
       </div>
 
-      <div class="canvas-column">
-        <canvas ref="c1" id="c1" width="576" height="384"></canvas>
+      <div class="col-sm-12 col-md-6">
+        <canvas ref="c1" id="c1" width="432" height="288"></canvas>
 
         <div class="canvas-toolbar">
           <button type="button" name="bring-forward" title="Bring forward" @click="sortLayer('up')" :disabled="!isActiveObject" class="btn">
@@ -68,6 +68,7 @@
 </template>
 
 <script>
+/* eslint-disable */
 import { fabric } from 'fabric'
 import FileUpload from './components/FileUpload.vue'
 import Accordion from './components/Accordion.vue'
@@ -75,9 +76,7 @@ import { saveAs } from 'file-saver'
 import canvasToBlob from 'canvas-toBlob'
 import { Chrome } from 'vue-color'
 
-const artAreaImg = require('./assets/art-area.png')
-
-const colors = {
+var colors = {
   hex: '#194d33',
   hsl: { h: 150, s: 0.5, l: 0.2, a: 1 },
   hsv: { h: 150, s: 0.66, v: 0.30, a: 1 },
@@ -128,6 +127,10 @@ export default {
     this.canvas = new fabric.Canvas('c1', { backgroundColor: "white" })
     this.canvas.setOverlayImage(require('./assets/art-boundaries.png'), this.canvas.renderAll.bind(this.canvas))
     this.canvas.on('mouse:down', this.checkActiveObject)
+    // window.addEventListener('keydown', this.removeObject);
+  },
+  destroyed: function() {
+    // window.removeEventListener('keydown', this.removeObject);
   },
   methods: {
     addImage () {
@@ -139,12 +142,12 @@ export default {
       this.imageObj = ''
     },
     addShape (shape, corners) {
-      let object
+      var object
       if (shape === 'circle') {
         object = new fabric.Circle({
           left: 100,
           top: 100,
-          fill: 'red',
+          fill: this.color,
           width: 20,
           height: 20
         });
@@ -153,7 +156,7 @@ export default {
         object = new fabric.Rect({
           left: 100,
           top: 100,
-          fill: 'red',
+          fill: this.color,
           width: 20,
           height: 20
         })
@@ -186,18 +189,18 @@ export default {
       this.isActiveObject = false
     },
     save () {
-      let resizedCanvas = document.createElement("canvas")
-      resizedCanvas.getContext("2d")
+      // ensure that the saved PNG is a certain size
+      var resizedCanvas = document.createElement("canvas")
+      var resizedContext = resizedCanvas.getContext("2d")
 
       resizedCanvas.height = "288"
       resizedCanvas.width = "432"
 
-      let originalCanvas = document.getElementById("c1")
-      originalCanvas.getContext("2d")
+      var canvas = document.getElementById("c1")
+      var context = canvas.getContext("2d")
 
-      resizedContext.drawImage(originalCanvas, 0, 0, 200, 100)
-
-      resizedCanvas.toBlob(blob => saveAs(blob, 'design.png'))
+      resizedContext.drawImage(canvas, 0, 0, 432, 288)
+      resizedCanvas.toBlob(blob => saveAs(blob, 'my-design.png'))
     },
     setCanvasBackgroundColor () {
       this.canvas.setBackgroundColor(this.color)
@@ -235,11 +238,11 @@ export default {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
-.grid-container {
+/* .grid-container {
   display: grid;
   grid-template-columns: 1fr 576px;
   grid-column-gap: 25px;
-}
+} */
 .add-column {
   display: flex;
   flex-direction: column;
