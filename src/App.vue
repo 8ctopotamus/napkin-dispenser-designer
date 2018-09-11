@@ -1,6 +1,6 @@
 <template>
-  <div id="app">
-    <div class="row">
+  <div id="app" class="container">
+    <div v-if="showUI" class="row">
       <div class="col-sm-12 col-md-6">
         <accordion title="Canvas">
           <chrome-picker :value="color" @input="updateColor"></chrome-picker>
@@ -28,16 +28,28 @@
           <button type="button" name="Add image" @click="addImage" :disabled="imageObj === ''" class="btn btn-block">Add image</button>
         </accordion>
 
-        <accordion title="Shapes">
+        <accordion title="Shapes" class="accordion-shapes">
           <button type="button" name="add-circle" @click="addShape('circle')" class="btn">
-            <i class="fas fa-circle"></i>
+            <i class="fas fa-circle"></i> Add Circle
           </button>
+          <br/>
           <button type="button" name="add-square" @click="addShape('rectangle')" class="btn">
-            <i class="fas fa-square"></i>
+            <i class="fas fa-square"></i> Add Square
           </button>
-          <button type="button" name="add-polygon" @click="addShape('polygon')" class="btn">
-            Poly
-          </button>
+          <h5>Add Polygon</h5>
+          <div class="form-group">
+            <label for="corners">Number of Corners</label>
+            <input type="number" name="corners" v-model="corners" class="form-control" />
+            <br/>
+            <button type="button" name="add-polygon" @click="addShape('polygon')" class="btn">
+              Add Polygon
+            </button>
+            <br/>
+            <button type="button" name="add-polygon" @click="addShape('star')" class="btn">
+              Add Star
+            </button>
+          </div>
+          <chrome-picker :value="color" @input="updateColor"></chrome-picker>
         </accordion>
       </div>
 
@@ -57,10 +69,17 @@
           <button @click="save" type="button" name="save" class="btn">Save</button>
         </div>
 
-        <div v-for="(layer, i) in layers" :key="i">
+        <h5 v-if="layers.length > 0" class="layers-title">Layers:</h5>
+        <div v-for="(layer, i) in layers" :key="i" class="layer">
           {{layer.type}}
         </div>
 
+      </div>
+    </div>
+    <div v-else class="row desktop-only">
+      <div class="col text-center">
+        <i class="fas fa-desktop fa-4x"></i>
+        <p>Sorry, this app is intended for desktop use.</p>
       </div>
     </div>
 
@@ -76,6 +95,41 @@ import { saveAs } from 'file-saver'
 import canvasToBlob from 'canvas-toBlob'
 import { Chrome } from 'vue-color'
 
+function regularPolygonPoints(sideCount,radius){
+  var sweep=Math.PI*2/sideCount;
+  var cx=radius;
+  var cy=radius;
+  var points=[];
+  for(var i=0;i<sideCount;i++){
+    var x=cx+radius*Math.cos(i*sweep);
+    var y=cy+radius*Math.sin(i*sweep);
+    points.push({x:x,y:y});
+  }
+  return(points);
+}
+
+function starPolygonPoints(spikeCount, outerRadius, innerRadius) {
+  var rot = Math.PI / 2 * 3;
+  var cx = outerRadius;
+  var cy = outerRadius;
+  var sweep = Math.PI / spikeCount;
+  var points = [];
+  var angle = 0;
+
+  for (var i = 0; i < spikeCount; i++) {
+    var x = cx + Math.cos(angle) * outerRadius;
+    var y = cy + Math.sin(angle) * outerRadius;
+    points.push({x: x, y: y});
+    angle += sweep;
+
+    x = cx + Math.cos(angle) * innerRadius;
+    y = cy + Math.sin(angle) * innerRadius;
+    points.push({x: x, y: y});
+    angle += sweep
+  }
+  return (points);
+}
+
 var colors = {
   hex: '#194d33',
   hsl: { h: 150, s: 0.5, l: 0.2, a: 1 },
@@ -83,6 +137,7 @@ var colors = {
   rgba: { r: 25, g: 77, b: 51, a: 1 },
   a: 1
 }
+
 export default {
   name: 'app',
   components: {
@@ -92,6 +147,7 @@ export default {
   },
   data () {
     return {
+      showUI: true,
       colors,
       color: '#333333',
       text: 'Your text',
@@ -119,6 +175,7 @@ export default {
       ],
       fontSize: 16,
       imageObj: '',
+      corners: 3,
       isActiveObject: false,
       layers: [],
     }
@@ -127,16 +184,21 @@ export default {
     this.canvas = new fabric.Canvas('c1', { backgroundColor: "white" })
     this.canvas.setOverlayImage(require('./assets/art-boundaries.png'), this.canvas.renderAll.bind(this.canvas))
     this.canvas.on('mouse:down', this.checkActiveObject)
-    // window.addEventListener('keydown', this.removeObject);
+
+    if (matchMedia) {
+      this.mq = window.matchMedia("(min-width: 767px)")
+      this.mq.addListener(this.widthChange)
+      this.widthChange(this.mq)
+    }
   },
   destroyed: function() {
-    // window.removeEventListener('keydown', this.removeObject);
+    this.mq.removeListener(this.widthChange)
   },
   methods: {
     addImage () {
       new fabric.Image.fromURL(this.imageObj, img => {
         this.canvas.add(img)
-        this.layers = this.canvas.getObjects()
+        this.getLayers()
       })
       this.$refs.fileUpload.clearImageData()
       this.imageObj = ''
@@ -145,12 +207,11 @@ export default {
       var object
       if (shape === 'circle') {
         object = new fabric.Circle({
-          left: 100,
-          top: 100,
+          radius: 30,
           fill: this.color,
-          width: 20,
-          height: 20
-        });
+          top: 100,
+          left: 100
+        })
       }
       if (shape === 'rectangle') {
         object = new fabric.Rect({
@@ -161,10 +222,27 @@ export default {
           height: 20
         })
       }
+      if (shape === 'polygon') {
+        var points = regularPolygonPoints(this.corners, 30);
+        object = new fabric.Polygon(points, {
+          fill: this.color,
+          left: 150,
+          top: 10,
+        }, false);
+      }
+      if (shape === 'star') {
+        // make a star
+        var points = starPolygonPoints(this.corners,50,25);
+        object = new fabric.Polygon(points, {
+          fill: this.color,
+          left: 150,
+          top: 10,
+        }, false);
+      }
 
       this.canvas.add(object)
       this.canvas.renderAll()
-      this.layers = this.canvas.getObjects()
+      this.getLayers()
     },
     addText () {
       this.canvas.add(new fabric.IText(this.text, {
@@ -175,7 +253,7 @@ export default {
         top: 100
       }))
 
-      this.layers = this.canvas.getObjects()
+      this.getLayers()
     },
     checkActiveObject (options) {
       if (options.target) {
@@ -183,6 +261,9 @@ export default {
       } else {
         this.isActiveObject = false
       }
+    },
+    getLayers () {
+      this.layers = this.canvas.getObjects().reverse()
     },
     removeObject() {
       this.canvas.remove(this.canvas.getActiveObject())
@@ -215,7 +296,7 @@ export default {
         if (direction === 'down') {
           this.canvas.sendBackwards(ao)
         }
-        this.layers = this.canvas.getObjects()
+        this.getLayers()
         this.canvas.renderAll()
       }
     },
@@ -225,7 +306,14 @@ export default {
         this.canvas.getActiveObject().setColor(this.color)
         this.canvas.renderAll()
       }
-    }
+    },
+    widthChange(mq) {
+      if (mq.matches) {
+        this.showUI = true
+      } else {
+        this.showUI = false
+      }
+    },
   }
 }
 </script>
@@ -238,11 +326,6 @@ export default {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
-/* .grid-container {
-  display: grid;
-  grid-template-columns: 1fr 576px;
-  grid-column-gap: 25px;
-} */
 .add-column {
   display: flex;
   flex-direction: column;
@@ -265,8 +348,20 @@ canvas#c1 {
 button {
   background: #006245;
   color: #fff;
+  margin-bottom: 10px;
 }
 button:disabled {
   opacity: .55;
+}
+.layers-title {
+  margin-top: 15px;
+}
+.layer {
+  background: #bbb;
+  padding: 5px;
+}
+.desktop-only i {
+  color: #999;
+  margin-bottom: 10px;
 }
 </style>
