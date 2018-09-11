@@ -38,7 +38,7 @@ export default {
     margin-bottom: 10px;
   }
   .accordion-title {
-    background: #006245;
+    background: #999;
     color: white;
     margin: 0;
     padding: 10px;

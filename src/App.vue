@@ -28,17 +28,17 @@
           <button type="button" name="Add image" @click="addImage" :disabled="imageObj === ''" class="btn btn-block">Add image</button>
         </accordion>
 
-        <!-- <accordion title="Shapes">
+        <accordion title="Shapes">
           <button type="button" name="add-circle" @click="addShape('circle')" class="btn">
             <i class="fas fa-circle"></i>
           </button>
-          <button type="button" name="add-square" @click="addShape('square')" class="btn">
+          <button type="button" name="add-square" @click="addShape('rectangle')" class="btn">
             <i class="fas fa-square"></i>
           </button>
           <button type="button" name="add-polygon" @click="addShape('polygon')" class="btn">
             Poly
           </button>
-        </accordion> -->
+        </accordion>
       </div>
 
       <div class="canvas-column">
@@ -57,6 +57,10 @@
           <button @click="save" type="button" name="save" class="btn">Save</button>
         </div>
 
+        <div v-for="(layer, i) in layers" :key="i">
+          {{layer.type}}
+        </div>
+
       </div>
     </div>
 
@@ -64,7 +68,6 @@
 </template>
 
 <script>
-/* eslint-disable */
 import { fabric } from 'fabric'
 import FileUpload from './components/FileUpload.vue'
 import Accordion from './components/Accordion.vue'
@@ -72,9 +75,9 @@ import { saveAs } from 'file-saver'
 import canvasToBlob from 'canvas-toBlob'
 import { Chrome } from 'vue-color'
 
-let artAreaImg = require('./assets/art-area.png')
+const artAreaImg = require('./assets/art-area.png')
 
-var colors = {
+const colors = {
   hex: '#194d33',
   hsl: { h: 150, s: 0.5, l: 0.2, a: 1 },
   hsv: { h: 150, s: 0.66, v: 0.30, a: 1 },
@@ -117,26 +120,48 @@ export default {
       ],
       fontSize: 16,
       imageObj: '',
-      isActiveObject: false
+      isActiveObject: false,
+      layers: [],
     }
   },
   mounted () {
     this.canvas = new fabric.Canvas('c1', { backgroundColor: "white" })
     this.canvas.setOverlayImage(require('./assets/art-boundaries.png'), this.canvas.renderAll.bind(this.canvas))
     this.canvas.on('mouse:down', this.checkActiveObject)
-    // window.addEventListener('keydown', this.removeObject);
-  },
-  destroyed: function() {
-    // window.removeEventListener('keydown', this.removeObject);
   },
   methods: {
     addImage () {
-      new fabric.Image.fromURL(this.imageObj, img => this.canvas.add(img))
+      new fabric.Image.fromURL(this.imageObj, img => {
+        this.canvas.add(img)
+        this.layers = this.canvas.getObjects()
+      })
       this.$refs.fileUpload.clearImageData()
       this.imageObj = ''
     },
-    addShape (shape) {
+    addShape (shape, corners) {
+      let object
+      if (shape === 'circle') {
+        object = new fabric.Circle({
+          left: 100,
+          top: 100,
+          fill: 'red',
+          width: 20,
+          height: 20
+        });
+      }
+      if (shape === 'rectangle') {
+        object = new fabric.Rect({
+          left: 100,
+          top: 100,
+          fill: 'red',
+          width: 20,
+          height: 20
+        })
+      }
 
+      this.canvas.add(object)
+      this.canvas.renderAll()
+      this.layers = this.canvas.getObjects()
     },
     addText () {
       this.canvas.add(new fabric.IText(this.text, {
@@ -146,10 +171,11 @@ export default {
         left: 100,
         top: 100
       }))
+
+      this.layers = this.canvas.getObjects()
     },
     checkActiveObject (options) {
       if (options.target) {
-        // console.log(options.target.type)
         this.isActiveObject = true
       } else {
         this.isActiveObject = false
@@ -160,55 +186,18 @@ export default {
       this.isActiveObject = false
     },
     save () {
-      // var radius = 100;
-      //
-      // fabric.Image.fromURL('http://fabricjs.com/assets/pug_small.jpg', (img) => {
-      //   img.scale(0.5).set({
-      //     left: 100,
-      //     top: 100,
-      //     angle: -15,
-      //     clipTo: function (ctx) {
-      //       ctx.arc(0, 0, radius, 0, Math.PI * 2, true);
-      //     }
-      //   });
-      //   this.canvas.add(img).setActiveObject(img);
-      //
-      //   this.canvas.clipTo = function(ctx) {
-      //     img.render(ctx);
-      //   };
-      // })
+      let resizedCanvas = document.createElement("canvas")
+      resizedCanvas.getContext("2d")
 
-      // fabric.Image.fromURL(artAreaImg, img => {
-      //   this.canvas.add(img)
-      //   this.canvas.clipTo = function(ctx) {
-      //     console.log(ctx)
-      //     img.render(ctx);
-      //   };
-      //   this.canvas.renderAll()
-      // })
+      resizedCanvas.height = "288"
+      resizedCanvas.width = "432"
 
-      // var shape = this.canvas.item(0);
-      // this.canvas.remove(shape);
-      // this.canvas.clipTo = function(ctx) {
-      //   shape.render(ctx);
-      // };
+      let originalCanvas = document.getElementById("c1")
+      originalCanvas.getContext("2d")
 
+      resizedContext.drawImage(originalCanvas, 0, 0, 200, 100)
 
-      // this.canvas.setOverlayImage(require('./assets/art-area.png'), this.canvas.renderAll.bind(this.canvas))
-
-      // const shape = this.canvas.overlayImage
-      // console.log(shape)
-      // var shape = this.canvas.getActiveObject();
-      // this.canvas.remove(shape);
-      // this.canvas.clipTo = function(ctx) {
-      //   shape.render(ctx);
-      // };
-
-      // this.canvas.renderAll()
-
-      this.$refs.c1.toBlob(blob => {
-        saveAs(blob, 'my-design.png')
-      })
+      resizedCanvas.toBlob(blob => saveAs(blob, 'design.png'))
     },
     setCanvasBackgroundColor () {
       this.canvas.setBackgroundColor(this.color)
@@ -223,6 +212,7 @@ export default {
         if (direction === 'down') {
           this.canvas.sendBackwards(ao)
         }
+        this.layers = this.canvas.getObjects()
         this.canvas.renderAll()
       }
     },
@@ -230,7 +220,7 @@ export default {
       this.color = color.hex
       if (this.canvas.getActiveObject()) {
         this.canvas.getActiveObject().setColor(this.color)
-        this.canvas.renderAll();
+        this.canvas.renderAll()
       }
     }
   }
