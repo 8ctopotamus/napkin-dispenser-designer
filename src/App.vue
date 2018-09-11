@@ -277,11 +277,23 @@ export default {
       resizedCanvas.height = "288"
       resizedCanvas.width = "432"
 
+
+      this.canvas.overlayImage = null;
+      this.canvas.renderAll.bind(this.canvas);
+
+
+      this.canvas.setOverlayImage(null, this.canvas.renderAll.bind(this.canvas))
+
       var canvas = document.getElementById("c1")
       var context = canvas.getContext("2d")
 
+
       resizedContext.drawImage(canvas, 0, 0, 432, 288)
-      resizedCanvas.toBlob(blob => saveAs(blob, 'my-design.png'))
+      resizedCanvas.toBlob(blob => {
+        saveAs(blob, 'my-design.png')
+        // reset overlay image
+        this.canvas.setOverlayImage(require('./assets/art-boundaries.png'), this.canvas.renderAll.bind(this.canvas))
+      })
     },
     setCanvasBackgroundColor () {
       this.canvas.setBackgroundColor(this.color)
