@@ -280,8 +280,12 @@ export default {
       var resizedCanvas = document.createElement("canvas")
       var resizedContext = resizedCanvas.getContext("2d")
 
-      resizedCanvas.height = "288"
-      resizedCanvas.width = "432"
+      // resizedCanvas.width = "432"
+      // resizedCanvas.height = "288"
+
+      // 8.5 x 11
+      resizedCanvas.width = "612"
+      resizedCanvas.height = "792"
 
       // remove overlay image for saving
       this.canvas.setOverlayImage(null, this.canvas.renderAll.bind(this.canvas))
@@ -289,7 +293,9 @@ export default {
       var canvas = document.getElementById("c1")
       var context = canvas.getContext("2d")
 
-      resizedContext.drawImage(canvas, 0, 0, 432, 288)
+      resizedContext.drawImage(canvas, 90, 82, 432, 288)
+      resizedContext.drawImage(canvas, 90, 422, 432, 288)
+
       resizedCanvas.toBlob(blob => {
         saveAs(blob, 'my-design.png')
         // reset overlay image
