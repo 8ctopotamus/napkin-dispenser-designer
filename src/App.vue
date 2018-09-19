@@ -1,7 +1,7 @@
 <template>
-  <div id="app">
-    <div class="grid-container">
-      <div class="add-column">
+  <div id="app" class="container">
+    <div v-if="showUI" class="row">
+      <div class="col-sm-12 col-md-6">
         <accordion title="Canvas">
           <chrome-picker :value="color" @input="updateColor"></chrome-picker>
           <button type="button" name="set-background-color" @click="setCanvasBackgroundColor" class="btn btn-block">
@@ -28,21 +28,33 @@
           <button type="button" name="Add image" @click="addImage" :disabled="imageObj === ''" class="btn btn-block">Add image</button>
         </accordion>
 
-        <accordion title="Shapes">
+        <accordion title="Shapes" class="accordion-shapes">
           <button type="button" name="add-circle" @click="addShape('circle')" class="btn">
-            <i class="fas fa-circle"></i>
+            <i class="fas fa-circle"></i> Add Circle
           </button>
+          <br/>
           <button type="button" name="add-square" @click="addShape('rectangle')" class="btn">
-            <i class="fas fa-square"></i>
+            <i class="fas fa-square"></i> Add Square
           </button>
-          <button type="button" name="add-polygon" @click="addShape('polygon')" class="btn">
-            Poly
-          </button>
+          <h5>Add Polygon</h5>
+          <div class="form-group">
+            <label for="corners">Number of Corners</label>
+            <input type="number" name="corners" v-model="corners" class="form-control" />
+            <br/>
+            <button type="button" name="add-polygon" @click="addShape('polygon')" class="btn">
+              Add Polygon
+            </button>
+            <br/>
+            <button type="button" name="add-polygon" @click="addShape('star')" class="btn">
+              Add Star
+            </button>
+          </div>
+          <chrome-picker :value="color" @input="updateColor"></chrome-picker>
         </accordion>
       </div>
 
-      <div class="canvas-column">
-        <canvas ref="c1" id="c1" width="576" height="384"></canvas>
+      <div class="col-sm-12 col-md-6">
+        <canvas ref="c1" id="c1" width="432" height="288"></canvas>
 
         <div class="canvas-toolbar">
           <button type="button" name="bring-forward" title="Bring forward" @click="sortLayer('up')" :disabled="!isActiveObject" class="btn">
@@ -54,13 +66,22 @@
           <button type="button" name="delete-object" title="Delete object" @click="removeObject" :disabled="!isActiveObject" class="btn">
             <i class="fas fa-trash-alt"></i>
           </button>
+          <button type="button" name="unselect-object" title="Delete object" @click="deselectObject" :disabled="!isActiveObject" class="btn">
+            Deselect Object
+          </button>
           <button @click="save" type="button" name="save" class="btn">Save</button>
         </div>
-
-        <div v-for="(layer, i) in layers" :key="i">
+        <h5 v-if="layers.length > 0" class="layers-title">Layers:</h5>
+        <div v-for="(layer, i) in layers" :key="i" class="layer">
           {{layer.type}}
         </div>
 
+      </div>
+    </div>
+    <div v-else class="row desktop-only">
+      <div class="col text-center">
+        <i class="fas fa-desktop fa-4x"></i>
+        <p>Sorry, this app is intended for desktop use.</p>
       </div>
     </div>
 
@@ -68,6 +89,7 @@
 </template>
 
 <script>
+/* eslint-disable */
 import { fabric } from 'fabric'
 import FileUpload from './components/FileUpload.vue'
 import Accordion from './components/Accordion.vue'
@@ -75,15 +97,49 @@ import { saveAs } from 'file-saver'
 import canvasToBlob from 'canvas-toBlob'
 import { Chrome } from 'vue-color'
 
-const artAreaImg = require('./assets/art-area.png')
+function regularPolygonPoints(sideCount,radius){
+  var sweep=Math.PI*2/sideCount;
+  var cx=radius;
+  var cy=radius;
+  var points=[];
+  for(var i=0;i<sideCount;i++){
+    var x=cx+radius*Math.cos(i*sweep);
+    var y=cy+radius*Math.sin(i*sweep);
+    points.push({x:x,y:y});
+  }
+  return(points);
+}
 
-const colors = {
+function starPolygonPoints(spikeCount, outerRadius, innerRadius) {
+  var rot = Math.PI / 2 * 3;
+  var cx = outerRadius;
+  var cy = outerRadius;
+  var sweep = Math.PI / spikeCount;
+  var points = [];
+  var angle = 0;
+
+  for (var i = 0; i < spikeCount; i++) {
+    var x = cx + Math.cos(angle) * outerRadius;
+    var y = cy + Math.sin(angle) * outerRadius;
+    points.push({x: x, y: y});
+    angle += sweep;
+
+    x = cx + Math.cos(angle) * innerRadius;
+    y = cy + Math.sin(angle) * innerRadius;
+    points.push({x: x, y: y});
+    angle += sweep
+  }
+  return (points);
+}
+
+var colors = {
   hex: '#194d33',
   hsl: { h: 150, s: 0.5, l: 0.2, a: 1 },
   hsv: { h: 150, s: 0.66, v: 0.30, a: 1 },
   rgba: { r: 25, g: 77, b: 51, a: 1 },
   a: 1
 }
+
 export default {
   name: 'app',
   components: {
@@ -93,6 +149,7 @@ export default {
   },
   data () {
     return {
+      showUI: true,
       colors,
       color: '#333333',
       text: 'Your text',
@@ -120,6 +177,7 @@ export default {
       ],
       fontSize: 16,
       imageObj: '',
+      corners: 3,
       isActiveObject: false,
       layers: [],
     }
@@ -128,40 +186,65 @@ export default {
     this.canvas = new fabric.Canvas('c1', { backgroundColor: "white" })
     this.canvas.setOverlayImage(require('./assets/art-boundaries.png'), this.canvas.renderAll.bind(this.canvas))
     this.canvas.on('mouse:down', this.checkActiveObject)
+
+    if (matchMedia) {
+      this.mq = window.matchMedia("(min-width: 767px)")
+      this.mq.addListener(this.widthChange)
+      this.widthChange(this.mq)
+    }
+  },
+  destroyed: function() {
+    this.mq.removeListener(this.widthChange)
   },
   methods: {
     addImage () {
       new fabric.Image.fromURL(this.imageObj, img => {
         this.canvas.add(img)
-        this.layers = this.canvas.getObjects()
+        this.getLayers()
       })
       this.$refs.fileUpload.clearImageData()
       this.imageObj = ''
     },
     addShape (shape, corners) {
-      let object
+      var object
       if (shape === 'circle') {
         object = new fabric.Circle({
-          left: 100,
+          radius: 30,
+          fill: this.color,
           top: 100,
-          fill: 'red',
-          width: 20,
-          height: 20
-        });
+          left: 100
+        })
       }
       if (shape === 'rectangle') {
         object = new fabric.Rect({
           left: 100,
           top: 100,
-          fill: 'red',
+          fill: this.color,
           width: 20,
           height: 20
         })
       }
+      if (shape === 'polygon') {
+        var points = regularPolygonPoints(this.corners, 30);
+        object = new fabric.Polygon(points, {
+          fill: this.color,
+          left: 150,
+          top: 10,
+        }, false);
+      }
+      if (shape === 'star') {
+        // make a star
+        var points = starPolygonPoints(this.corners,50,25);
+        object = new fabric.Polygon(points, {
+          fill: this.color,
+          left: 150,
+          top: 10,
+        }, false);
+      }
 
       this.canvas.add(object)
       this.canvas.renderAll()
-      this.layers = this.canvas.getObjects()
+      this.getLayers()
     },
     addText () {
       this.canvas.add(new fabric.IText(this.text, {
@@ -172,7 +255,11 @@ export default {
         top: 100
       }))
 
-      this.layers = this.canvas.getObjects()
+      this.getLayers()
+    },
+    deselectObject () {
+      this.canvas.discardActiveObject()
+      this.canvas.renderAll()
     },
     checkActiveObject (options) {
       if (options.target) {
@@ -181,23 +268,39 @@ export default {
         this.isActiveObject = false
       }
     },
+    getLayers () {
+      this.layers = this.canvas.getObjects().reverse()
+    },
     removeObject() {
       this.canvas.remove(this.canvas.getActiveObject())
       this.isActiveObject = false
     },
     save () {
-      let resizedCanvas = document.createElement("canvas")
-      resizedCanvas.getContext("2d")
+      // ensure that the saved PNG is a certain size
+      var resizedCanvas = document.createElement("canvas")
+      var resizedContext = resizedCanvas.getContext("2d")
 
-      resizedCanvas.height = "288"
-      resizedCanvas.width = "432"
+      // resizedCanvas.width = "432"
+      // resizedCanvas.height = "288"
 
-      let originalCanvas = document.getElementById("c1")
-      originalCanvas.getContext("2d")
+      // 8.5 x 11
+      resizedCanvas.width = "612"
+      resizedCanvas.height = "792"
 
-      resizedContext.drawImage(originalCanvas, 0, 0, 200, 100)
+      // remove overlay image for saving
+      this.canvas.setOverlayImage(null, this.canvas.renderAll.bind(this.canvas))
 
-      resizedCanvas.toBlob(blob => saveAs(blob, 'design.png'))
+      var canvas = document.getElementById("c1")
+      var context = canvas.getContext("2d")
+
+      resizedContext.drawImage(canvas, 90, 82, 432, 288)
+      resizedContext.drawImage(canvas, 90, 422, 432, 288)
+
+      resizedCanvas.toBlob(blob => {
+        saveAs(blob, 'my-design.png')
+        // reset overlay image
+        this.canvas.setOverlayImage(require('./assets/art-boundaries.png'), this.canvas.renderAll.bind(this.canvas))
+      })
     },
     setCanvasBackgroundColor () {
       this.canvas.setBackgroundColor(this.color)
@@ -212,7 +315,7 @@ export default {
         if (direction === 'down') {
           this.canvas.sendBackwards(ao)
         }
-        this.layers = this.canvas.getObjects()
+        this.getLayers()
         this.canvas.renderAll()
       }
     },
@@ -222,7 +325,14 @@ export default {
         this.canvas.getActiveObject().setColor(this.color)
         this.canvas.renderAll()
       }
-    }
+    },
+    widthChange(mq) {
+      if (mq.matches) {
+        this.showUI = true
+      } else {
+        this.showUI = false
+      }
+    },
   }
 }
 </script>
@@ -234,11 +344,6 @@ export default {
   max-width: 860px;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-}
-.grid-container {
-  display: grid;
-  grid-template-columns: 1fr 576px;
-  grid-column-gap: 25px;
 }
 .add-column {
   display: flex;
@@ -262,8 +367,20 @@ canvas#c1 {
 button {
   background: #006245;
   color: #fff;
+  margin-bottom: 10px;
 }
 button:disabled {
   opacity: .55;
+}
+.layers-title {
+  margin-top: 15px;
+}
+.layer {
+  background: #bbb;
+  padding: 5px;
+}
+.desktop-only i {
+  color: #999;
+  margin-bottom: 10px;
 }
 </style>
