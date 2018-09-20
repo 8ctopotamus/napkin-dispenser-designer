@@ -2,14 +2,14 @@
   <div id="app" class="container">
     <div v-if="showUI" class="row">
       <div class="col-sm-12 col-md-6">
-        <accordion title="Canvas">
+        <accordion title="Background">
           <chrome-picker :value="color" @input="updateColor"></chrome-picker>
           <button type="button" name="set-background-color" @click="setCanvasBackgroundColor" class="btn btn-block">
             Set Background Color
           </button>
         </accordion>
 
-        <accordion title="Text">
+        <accordion title="Add Text">
           <label for="text">Text</label>
           <input type="text" name="text" v-model="text" class="form-control" />
           <label for="font-family">Font family</label>
@@ -23,12 +23,12 @@
           <button @click="addText" type="button" name="add-text" class="btn btn-block">Add text</button>
         </accordion>
 
-        <accordion title="Image">
+        <accordion title="Add Image">
           <file-upload @fileChanged="imageObj = $event" ref="fileUpload"></file-upload>
           <button type="button" name="Add image" @click="addImage" :disabled="imageObj === ''" class="btn btn-block">Add image</button>
         </accordion>
 
-        <accordion title="Shapes" class="accordion-shapes">
+        <accordion title="Add Shapes" class="accordion-shapes">
           <button type="button" name="add-circle" @click="addShape('circle')" class="btn">
             <i class="fas fa-circle"></i> Add Circle
           </button>
@@ -36,7 +36,7 @@
           <button type="button" name="add-square" @click="addShape('rectangle')" class="btn">
             <i class="fas fa-square"></i> Add Square
           </button>
-          <h5>Add Polygon</h5>
+          <h5>Add Polygons and Stars</h5>
           <div class="form-group">
             <label for="corners">Number of Corners</label>
             <input type="number" name="corners" v-model="corners" class="form-control" />
@@ -69,7 +69,7 @@
           <button type="button" name="unselect-object" title="Delete object" @click="deselectObject" :disabled="!isActiveObject" class="btn">
             <i class="fas fa-hand-paper"></i> Release Object
           </button>
-          <button @click="save" type="button" name="save" class="btn">Save</button>
+          <button @click="save" type="button" title="Save Design" name="save" class="btn">Save</button>
         </div>
         <h5 v-if="layers.length > 0" class="layers-title">Layers:</h5>
         <div v-for="(layer, i) in layers" :key="i" class="layer">
@@ -369,7 +369,7 @@ button {
   margin-bottom: 10px;
 }
 button:disabled {
-  opacity: .55;
+  opacity: 1;
 }
 .layers-title {
   margin-top: 15px;
