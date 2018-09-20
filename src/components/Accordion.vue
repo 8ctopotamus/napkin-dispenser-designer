@@ -1,6 +1,7 @@
 <template>
   <div class="accordion">
     <h3 class="accordion-title" @click="open = !open">{{title}}</h3>
+    <i class="fas fa-chevron-circle-down"></i>
     <transition name="slide-fade">
       <div class="accordion-content" v-show="open">
         <slot></slot>
@@ -38,7 +39,7 @@ export default {
     margin-bottom: 10px;
   }
   .accordion-title {
-    background: #999;
+    background: #006245;
     color: white;
     margin: 0;
     padding: 10px;
