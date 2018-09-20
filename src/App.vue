@@ -67,7 +67,7 @@
             <i class="fas fa-trash-alt"></i>
           </button>
           <button type="button" name="unselect-object" title="Delete object" @click="deselectObject" :disabled="!isActiveObject" class="btn">
-            Deselect Object
+            <i class="fas fa-hand-paper"></i> Release Object
           </button>
           <button @click="save" type="button" name="save" class="btn">Save</button>
         </div>
@@ -98,38 +98,37 @@ import canvasToBlob from 'canvas-toBlob'
 import { Chrome } from 'vue-color'
 
 function regularPolygonPoints(sideCount,radius){
-  var sweep=Math.PI*2/sideCount;
-  var cx=radius;
-  var cy=radius;
-  var points=[];
+  var sweep=Math.PI*2/sideCount
+  var cx=radius
+  var cy=radius
+  var points=[]
   for(var i=0;i<sideCount;i++){
-    var x=cx+radius*Math.cos(i*sweep);
-    var y=cy+radius*Math.sin(i*sweep);
-    points.push({x:x,y:y});
+    var x=cx+radius*Math.cos(i*sweep)
+    var y=cy+radius*Math.sin(i*sweep)
+    points.push({x:x,y:y})
   }
-  return(points);
+  return(points)
 }
 
 function starPolygonPoints(spikeCount, outerRadius, innerRadius) {
-  var rot = Math.PI / 2 * 3;
-  var cx = outerRadius;
-  var cy = outerRadius;
-  var sweep = Math.PI / spikeCount;
-  var points = [];
-  var angle = 0;
-
+  var rot = Math.PI / 2 * 3
+  var cx = outerRadius
+  var cy = outerRadius
+  var sweep = Math.PI / spikeCount
+  var points = []
+  var angle = 0
   for (var i = 0; i < spikeCount; i++) {
-    var x = cx + Math.cos(angle) * outerRadius;
-    var y = cy + Math.sin(angle) * outerRadius;
-    points.push({x: x, y: y});
-    angle += sweep;
+    var x = cx + Math.cos(angle) * outerRadius
+    var y = cy + Math.sin(angle) * outerRadius
+    points.push({x: x, y: y})
+    angle += sweep
 
-    x = cx + Math.cos(angle) * innerRadius;
-    y = cy + Math.sin(angle) * innerRadius;
-    points.push({x: x, y: y});
+    x = cx + Math.cos(angle) * innerRadius
+    y = cy + Math.sin(angle) * innerRadius
+    points.push({x: x, y: y})
     angle += sweep
   }
-  return (points);
+  return (points)
 }
 
 var colors = {
@@ -377,6 +376,7 @@ button:disabled {
 }
 .layer {
   background: #bbb;
+  border-bottom: 1px solid #999;
   padding: 5px;
 }
 .desktop-only i {
