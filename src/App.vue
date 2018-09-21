@@ -54,7 +54,7 @@
       </div>
 
       <div class="col-sm-12 col-md-6">
-        <canvas ref="c1" id="c1" width="432" height="288"></canvas>
+        <canvas ref="c1" id="c1" width="442" height="298"></canvas>
 
         <div class="canvas-toolbar">
           <button type="button" name="bring-forward" title="Bring forward" @click="sortLayer('up')" :disabled="!isActiveObject" class="btn">
@@ -279,9 +279,6 @@ export default {
       var resizedCanvas = document.createElement("canvas")
       var resizedContext = resizedCanvas.getContext("2d")
 
-      // resizedCanvas.width = "432"
-      // resizedCanvas.height = "288"
-
       // 8.5 x 11
       resizedCanvas.width = "612"
       resizedCanvas.height = "792"
@@ -292,8 +289,8 @@ export default {
       var canvas = document.getElementById("c1")
       var context = canvas.getContext("2d")
 
-      resizedContext.drawImage(canvas, 90, 82, 432, 288)
-      resizedContext.drawImage(canvas, 90, 422, 432, 288)
+      resizedContext.drawImage(canvas, 90, 82, 442, 298)
+      resizedContext.drawImage(canvas, 90, 422, 442, 298)
 
       resizedCanvas.toBlob(blob => {
         saveAs(blob, 'my-design.png')
