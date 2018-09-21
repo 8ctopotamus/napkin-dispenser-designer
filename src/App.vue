@@ -289,8 +289,8 @@ export default {
       var canvas = document.getElementById("c1")
       var context = canvas.getContext("2d")
 
-      resizedContext.drawImage(canvas, 90, 82, 442, 298)
-      resizedContext.drawImage(canvas, 90, 422, 442, 298)
+      resizedContext.drawImage(canvas, 86, 80, 442, 298)
+      resizedContext.drawImage(canvas, 86, 414, 442, 298)
 
       resizedCanvas.toBlob(blob => {
         saveAs(blob, 'my-design.png')
