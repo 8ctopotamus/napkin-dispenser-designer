@@ -43,7 +43,7 @@
               Add Star
             </button>
           </div>
-          <chrome-picker :value="color" @input="updateShapeColor"></chrome-picker>
+          <chrome-picker :value="shapeColor" @input="updateShapeColor"></chrome-picker>
         </accordion>
       </div>
       <div class="col-sm-12 col-md-6">
@@ -136,11 +136,9 @@ export default {
   },
   data () {
     return {
-      showUI: true,
       backgroundColor: '#333333',
-      textColor: '#333333',
-      color: '#333333',
-      text: 'Your text',
+      corners: 3,
+      drag: false,
       fontFamily: 'Lato',
       fontFamilies: [
         'Abril FatFace',
@@ -165,52 +163,12 @@ export default {
       ],
       fontSize: 16,
       imageObj: '',
-      corners: 3,
       isActiveObject: false,
       layers: [],
-      drag: false,
-  myArray: [
-  {
-    "name": "draggable",
-    "order": 2,
-    "fixed": false
-  },
-  {
-    "name": "vue.js 2.0",
-    "order": 5,
-    "fixed": false
-  },
-  {
-    "name": "component",
-    "order": 3,
-    "fixed": false
-  },
-  {
-    "name": "for",
-    "order": 4,
-    "fixed": false
-  },
-  {
-    "name": "based",
-    "order": 6,
-    "fixed": false
-  },
-  {
-    "name": "on",
-    "order": 7,
-    "fixed": false
-  },
-  {
-    "name": "vue.draggable",
-    "order": 1,
-    "fixed": false
-  },
-  {
-    "name": "Sortablejs",
-    "order": 8,
-    "fixed": false
-  }
-]
+      shapeColor: '#333333',
+      showUI: true,
+      text: 'Your text',
+      textColor: '#333333',
     }
   },
   mounted () {
@@ -242,7 +200,7 @@ export default {
       if (shape === 'circle') {
         object = new fabric.Circle({
           radius: 30,
-          fill: this.color,
+          fill: this.shapeColor,
           top: 100,
           left: 100,
           id: generateId()
@@ -252,7 +210,7 @@ export default {
         object = new fabric.Rect({
           left: 100,
           top: 100,
-          fill: this.color,
+          fill: this.shapeColor,
           width: 100,
           height: 100,
           id: generateId()
@@ -261,7 +219,7 @@ export default {
       if (shape === 'polygon') {
         var points = regularPolygonPoints(this.corners, 30);
         object = new fabric.Polygon(points, {
-          fill: this.color,
+          fill: this.shapeColor,
           left: 150,
           top: 10,
           id: generateId()
@@ -271,7 +229,7 @@ export default {
         // make a star
         var points = starPolygonPoints(this.corners,50,25);
         object = new fabric.Polygon(points, {
-          fill: this.color,
+          fill: this.shapeColor,
           left: 150,
           top: 10,
           id: generateId()
@@ -369,22 +327,10 @@ export default {
       this.canvas.renderAll()
     },
     updateShapeColor (color) {
-      this.color = color.hex
-      if (
-        this.canvas.getActiveObject() &&
-        this.canvas.getActiveObject().type !== 'image' &&
-        this.canvas.getActiveObject().type !== 'i-text'
-      ) {
-        this.canvas.getActiveObject().setColor(this.color)
-        this.canvas.renderAll()
-      }
+      this.shapeColor = color.hex
     },
     updateTextColor (color) {
       this.textColor = color.hex
-      if (this.canvas.getActiveObject() && this.canvas.getActiveObject().type === 'i-text') {
-        this.canvas.getActiveObject().setColor(this.textColor)
-        this.canvas.renderAll()
-      }
     },
     widthChange(mq) {
       if (mq.matches) {
@@ -393,6 +339,29 @@ export default {
         this.showUI = false
       }
     },
+  },
+  watch: {
+    fontFamily: function(newVal, oldVal) {
+      const ao = this.canvas.getActiveObject()
+      if (ao && ao.type === 'i-text') {
+        ao.set({fontFamily: newVal})
+        this.canvas.renderAll()
+      }
+    },
+    textColor: function(newVal, oldVal) {
+      const ao = this.canvas.getActiveObject()
+      if (ao && ao.type === 'i-text') {
+        ao.setColor(this.textColor)
+        this.canvas.renderAll()
+      }
+    },
+    shapeColor: function(newVal, oldVal) {
+      const ao = this.canvas.getActiveObject()
+      if (ao && ao.type !== 'image' && ao.type !== 'i-text') {
+        ao.setColor(this.shapeColor)
+        this.canvas.renderAll()
+      }
+    }
   }
 }
 </script>
