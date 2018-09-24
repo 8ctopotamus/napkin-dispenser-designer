@@ -333,11 +333,15 @@ export default {
         const targetIndex = reversedLayers.findIndex(l => l.id === layer.id)
         layer.moveTo(targetIndex)
       })
+      this.deselectObject()
       this.canvas.renderAll()
       this.getLayers()
     },
     removeObject() {
-      this.canvas.remove(this.canvas.getActiveObject())
+      const ao = this.canvas.getActiveObject()
+      const index = this.canvas.getObjects().reverse().indexOf(ao)
+      this.canvas.remove(ao)
+      this.layers.splice(index, 1)
       this.isActiveObject = false
     },
     save () {
