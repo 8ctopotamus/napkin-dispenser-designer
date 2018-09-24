@@ -3,12 +3,8 @@
     <div v-if="showUI" class="row">
       <div class="col-sm-12 col-md-6">
         <accordion title="Background">
-          <chrome-picker :value="color" @input="updateColor"></chrome-picker>
-          <button type="button" name="set-background-color" @click="setCanvasBackgroundColor" class="btn btn-block">
-            Set Background Color
-          </button>
+          <chrome-picker :value="backgroundColor" @input="updateCanvasBackgroundColor"></chrome-picker>
         </accordion>
-
         <accordion title="Text">
           <label for="text">Text</label>
           <input type="text" name="text" v-model="text" class="form-control" />
@@ -19,15 +15,13 @@
           <label for="font-size">Font size</label>
           <input type="number" name="font-size" v-model="fontSize" class="form-control">
           <input type="range" name="font-size" v-model="fontSize">
-          <chrome-picker :value="color" @input="updateColor"></chrome-picker>
+          <chrome-picker :value="textColor" @input="updateTextColor"></chrome-picker>
           <button @click="addText" type="button" name="add-text" class="btn btn-block">Add text</button>
         </accordion>
-
         <accordion title="Images">
           <file-upload @fileChanged="imageObj = $event" ref="fileUpload"></file-upload>
           <button type="button" name="Add image" @click="addImage" :disabled="imageObj === ''" class="btn btn-block">Add image</button>
         </accordion>
-
         <accordion title="Shapes" class="accordion-shapes">
           <button type="button" name="add-circle" @click="addShape('circle')" class="btn">
             <i class="fas fa-circle"></i> Add Circle
@@ -49,13 +43,11 @@
               Add Star
             </button>
           </div>
-          <chrome-picker :value="color" @input="updateColor"></chrome-picker>
+          <chrome-picker :value="color" @input="updateShapeColor"></chrome-picker>
         </accordion>
       </div>
-
       <div class="col-sm-12 col-md-6">
         <canvas ref="c1" id="c1" width="442" height="298"></canvas>
-
         <div class="canvas-toolbar">
           <button type="button" name="bring-forward" title="Bring forward" @click="sortLayerByArrow('up')" :disabled="!isActiveObject" class="btn">
             <i class="fas fa-sort-up"></i>
@@ -71,7 +63,6 @@
           </button>
           <button @click="save" type="button" title="Save Design" name="save" class="btn">Save</button>
         </div>
-
         <h5 v-if="layers.length > 0" class="layers-title">Layers:</h5>
         <draggable v-model="layers" @start="drag = true" @end="handleLayerDragEnd">
           <div v-for="(layer, i) in layers" :key="layer + i" class="layer">
@@ -81,9 +72,7 @@
         </draggable>
       </div>
     </div>
-
     <desktop-only v-else></desktop-only>
-
   </div>
 </template>
 
@@ -97,14 +86,6 @@ import { saveAs } from 'file-saver'
 import canvasToBlob from 'canvas-toBlob'
 import { Chrome } from 'vue-color'
 import draggable from 'vuedraggable'
-
-var colors = {
-  hex: '#194d33',
-  hsl: { h: 150, s: 0.5, l: 0.2, a: 1 },
-  hsv: { h: 150, s: 0.66, v: 0.30, a: 1 },
-  rgba: { r: 25, g: 77, b: 51, a: 1 },
-  a: 1
-}
 
 function generateId() {
   return '_' + Math.random().toString(36).substr(2, 9);
@@ -156,7 +137,8 @@ export default {
   data () {
     return {
       showUI: true,
-      colors,
+      backgroundColor: '#333333',
+      textColor: '#333333',
       color: '#333333',
       text: 'Your text',
       fontFamily: 'Lato',
@@ -304,7 +286,7 @@ export default {
       this.canvas.add(new fabric.IText(this.text, {
         fontFamily: this.fontFamily,
         fontSize: this.fontSize,
-        fill: this.color,
+        fill: this.textColor,
         left: 100,
         top: 100,
         id: generateId()
@@ -368,10 +350,6 @@ export default {
         this.canvas.setOverlayImage(require('./assets/art-boundaries.png'), this.canvas.renderAll.bind(this.canvas))
       })
     },
-    setCanvasBackgroundColor () {
-      this.canvas.setBackgroundColor(this.color)
-      this.canvas.renderAll()
-    },
     sortLayerByArrow(direction) {
       const ao = this.canvas.getActiveObject()
       if (ao) {
@@ -385,10 +363,26 @@ export default {
         this.canvas.renderAll()
       }
     },
-    updateColor (color) {
+    updateCanvasBackgroundColor (color) {
+      this.backgroundColor = color.hex
+      this.canvas.setBackgroundColor(this.backgroundColor)
+      this.canvas.renderAll()
+    },
+    updateShapeColor (color) {
       this.color = color.hex
-      if (this.canvas.getActiveObject()) {
+      if (
+        this.canvas.getActiveObject() &&
+        this.canvas.getActiveObject().type !== 'image' &&
+        this.canvas.getActiveObject().type !== 'i-text'
+      ) {
         this.canvas.getActiveObject().setColor(this.color)
+        this.canvas.renderAll()
+      }
+    },
+    updateTextColor (color) {
+      this.textColor = color.hex
+      if (this.canvas.getActiveObject() && this.canvas.getActiveObject().type === 'i-text') {
+        this.canvas.getActiveObject().setColor(this.textColor)
         this.canvas.renderAll()
       }
     },
