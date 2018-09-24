@@ -9,7 +9,7 @@
           </button>
         </accordion>
 
-        <accordion title="Add Text">
+        <accordion title="Text">
           <label for="text">Text</label>
           <input type="text" name="text" v-model="text" class="form-control" />
           <label for="font-family">Font family</label>
@@ -23,12 +23,12 @@
           <button @click="addText" type="button" name="add-text" class="btn btn-block">Add text</button>
         </accordion>
 
-        <accordion title="Add Image">
+        <accordion title="Images">
           <file-upload @fileChanged="imageObj = $event" ref="fileUpload"></file-upload>
           <button type="button" name="Add image" @click="addImage" :disabled="imageObj === ''" class="btn btn-block">Add image</button>
         </accordion>
 
-        <accordion title="Add Shapes" class="accordion-shapes">
+        <accordion title="Shapes" class="accordion-shapes">
           <button type="button" name="add-circle" @click="addShape('circle')" class="btn">
             <i class="fas fa-circle"></i> Add Circle
           </button>
@@ -57,10 +57,10 @@
         <canvas ref="c1" id="c1" width="442" height="298"></canvas>
 
         <div class="canvas-toolbar">
-          <button type="button" name="bring-forward" title="Bring forward" @click="sortLayer('up')" :disabled="!isActiveObject" class="btn">
+          <button type="button" name="bring-forward" title="Bring forward" @click="sortLayerByArrow('up')" :disabled="!isActiveObject" class="btn">
             <i class="fas fa-sort-up"></i>
           </button>
-          <button type="button" name="send-backwards" title="Send backwards" @click="sortLayer('down')" :disabled="!isActiveObject" class="btn">
+          <button type="button" name="send-backwards" title="Send backwards" @click="sortLayerByArrow('down')" :disabled="!isActiveObject" class="btn">
             <i class="fas fa-sort-down"></i>
           </button>
           <button type="button" name="delete-object" title="Delete object" @click="removeObject" :disabled="!isActiveObject" class="btn">
@@ -71,19 +71,18 @@
           </button>
           <button @click="save" type="button" title="Save Design" name="save" class="btn">Save</button>
         </div>
-        <h5 v-if="layers.length > 0" class="layers-title">Layers:</h5>
-        <div v-for="(layer, i) in layers" :key="i" class="layer">
-          {{layer.type}}
-        </div>
 
+        <h5 v-if="layers.length > 0" class="layers-title">Layers:</h5>
+        <draggable v-model="layers" @start="drag = true" @end="handleLayerDragEnd">
+          <div v-for="(layer, i) in layers" :key="layer + i" class="layer">
+            {{layer.type}}
+            <i class="fas fa-ellipsis-v"></i>
+          </div>
+        </draggable>
       </div>
     </div>
-    <div v-else class="row desktop-only">
-      <div class="col text-center">
-        <i class="fas fa-desktop fa-4x"></i>
-        <p>Sorry, this app is intended for desktop use.</p>
-      </div>
-    </div>
+
+    <desktop-only v-else></desktop-only>
 
   </div>
 </template>
@@ -91,13 +90,27 @@
 <script>
 /* eslint-disable */
 import { fabric } from 'fabric'
-import FileUpload from './components/FileUpload.vue'
 import Accordion from './components/Accordion.vue'
+import DesktopOnly from './components/DesktopOnly.vue'
+import FileUpload from './components/FileUpload.vue'
 import { saveAs } from 'file-saver'
 import canvasToBlob from 'canvas-toBlob'
 import { Chrome } from 'vue-color'
+import draggable from 'vuedraggable'
 
-function regularPolygonPoints(sideCount,radius){
+var colors = {
+  hex: '#194d33',
+  hsl: { h: 150, s: 0.5, l: 0.2, a: 1 },
+  hsv: { h: 150, s: 0.66, v: 0.30, a: 1 },
+  rgba: { r: 25, g: 77, b: 51, a: 1 },
+  a: 1
+}
+
+function generateId() {
+  return '_' + Math.random().toString(36).substr(2, 9);
+}
+
+function regularPolygonPoints(sideCount, radius){
   var sweep=Math.PI*2/sideCount
   var cx=radius
   var cy=radius
@@ -131,20 +144,14 @@ function starPolygonPoints(spikeCount, outerRadius, innerRadius) {
   return (points)
 }
 
-var colors = {
-  hex: '#194d33',
-  hsl: { h: 150, s: 0.5, l: 0.2, a: 1 },
-  hsv: { h: 150, s: 0.66, v: 0.30, a: 1 },
-  rgba: { r: 25, g: 77, b: 51, a: 1 },
-  a: 1
-}
-
 export default {
   name: 'app',
   components: {
     Accordion,
-    FileUpload,
     'chrome-picker': Chrome,
+    DesktopOnly,
+    draggable,
+    FileUpload,
   },
   data () {
     return {
@@ -179,6 +186,49 @@ export default {
       corners: 3,
       isActiveObject: false,
       layers: [],
+      drag: false,
+  myArray: [
+  {
+    "name": "draggable",
+    "order": 2,
+    "fixed": false
+  },
+  {
+    "name": "vue.js 2.0",
+    "order": 5,
+    "fixed": false
+  },
+  {
+    "name": "component",
+    "order": 3,
+    "fixed": false
+  },
+  {
+    "name": "for",
+    "order": 4,
+    "fixed": false
+  },
+  {
+    "name": "based",
+    "order": 6,
+    "fixed": false
+  },
+  {
+    "name": "on",
+    "order": 7,
+    "fixed": false
+  },
+  {
+    "name": "vue.draggable",
+    "order": 1,
+    "fixed": false
+  },
+  {
+    "name": "Sortablejs",
+    "order": 8,
+    "fixed": false
+  }
+]
     }
   },
   mounted () {
@@ -200,6 +250,7 @@ export default {
       new fabric.Image.fromURL(this.imageObj, img => {
         this.canvas.add(img)
         this.getLayers()
+        this.id = generateId()
       })
       this.$refs.fileUpload.clearImageData()
       this.imageObj = ''
@@ -211,7 +262,8 @@ export default {
           radius: 30,
           fill: this.color,
           top: 100,
-          left: 100
+          left: 100,
+          id: generateId()
         })
       }
       if (shape === 'rectangle') {
@@ -219,8 +271,9 @@ export default {
           left: 100,
           top: 100,
           fill: this.color,
-          width: 20,
-          height: 20
+          width: 100,
+          height: 100,
+          id: generateId()
         })
       }
       if (shape === 'polygon') {
@@ -229,6 +282,7 @@ export default {
           fill: this.color,
           left: 150,
           top: 10,
+          id: generateId()
         }, false);
       }
       if (shape === 'star') {
@@ -238,6 +292,7 @@ export default {
           fill: this.color,
           left: 150,
           top: 10,
+          id: generateId()
         }, false);
       }
 
@@ -251,7 +306,8 @@ export default {
         fontSize: this.fontSize,
         fill: this.color,
         left: 100,
-        top: 100
+        top: 100,
+        id: generateId()
       }))
 
       this.getLayers()
@@ -269,6 +325,16 @@ export default {
     },
     getLayers () {
       this.layers = this.canvas.getObjects().reverse()
+    },
+    handleLayerDragEnd () {
+      this.drag = false
+      const reversedLayers = this.layers.reverse()
+      this.canvas.getObjects().forEach((layer, i) => {
+        const targetIndex = reversedLayers.findIndex(l => l.id === layer.id)
+        layer.moveTo(targetIndex)
+      })
+      this.canvas.renderAll()
+      this.getLayers()
     },
     removeObject() {
       this.canvas.remove(this.canvas.getActiveObject())
@@ -302,7 +368,7 @@ export default {
       this.canvas.setBackgroundColor(this.color)
       this.canvas.renderAll()
     },
-    sortLayer(direction) {
+    sortLayerByArrow(direction) {
       const ao = this.canvas.getActiveObject()
       if (ao) {
         if (direction === 'up') {
@@ -374,10 +440,16 @@ button:disabled {
 .layer {
   background: #bbb;
   border-bottom: 1px solid #999;
-  padding: 5px;
+  padding: 10px;
+  display: flex;
+  justify-content: space-between;
 }
-.desktop-only i {
-  color: #999;
-  margin-bottom: 10px;
+.layer:hover {
+  background: #ccc;
+  cursor: grab;
+}
+.layer i {
+  margin-top: 3px;
+  color: #777;
 }
 </style>

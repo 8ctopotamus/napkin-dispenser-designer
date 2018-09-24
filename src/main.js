@@ -1,7 +1,7 @@
 import Vue from 'vue'
 import App from './App.vue'
 
-var WebFont = require('webfontloader');
+var WebFont = require('webfontloader')
 WebFont.load({
   google: {
     families: [
@@ -26,7 +26,7 @@ WebFont.load({
       'Spectral',
     ]
   }
-});
+})
 
 Vue.config.productionTip = false
 
