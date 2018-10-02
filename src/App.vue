@@ -1,11 +1,27 @@
 <template>
   <div id="app" class="container">
+    <div id="quickStart">
+      <h1>PowerNap<sup>&reg;</sup> Ad Designer</h1>
+      <h2>Quick Start Guide</h2>
+      <ol>
+        <li>Select either a background image or background color for your design</li>
+        <li>Add text to your design</li>
+        <li>Add shapes, additional images or text to your design</li>
+        <li>When you are satisfied with your design, click "Save Design" to download your design to your desktop</li>
+        <li>Print your design and place in your dispenser</li>
+      </ol>
+      <br>
+      <p>Need additional help getting started? Learn more in the <a href="#" id="plainLink">Ad Designer Guide</a></p>
+    </div>
     <div v-if="showUI" class="row">
       <div class="col-sm-12 col-md-6">
         <accordion title="Background">
+          <p>Use the color picker to add a background color to your design</p>
           <chrome-picker :value="backgroundColor" @input="updateCanvasBackgroundColor"></chrome-picker>
         </accordion>
         <accordion title="Text">
+          <p>Enter your text, select your font, size, and color.</p>
+          <p>Add as many text elements as your design requires.</p>
           <label for="text">Text</label>
           <input type="text" name="text" v-model="text" class="form-control" />
           <label for="font-family">Font family</label>
@@ -16,13 +32,16 @@
           <input type="number" name="font-size" v-model="fontSize" class="form-control">
           <input type="range" name="font-size" v-model="fontSize">
           <chrome-picker :value="textColor" @input="updateTextColor"></chrome-picker>
-          <button @click="addText" type="button" name="add-text" class="btn btn-block">Add text</button>
+          <button @click="addText" type="button" name="add-text" class="btn btn-block">Add new text</button>
         </accordion>
         <accordion title="Images">
+          <p>Upload an image into your design. Supported image formats are JPG and PNG.</p>
+          <p>Recommended image size is 600px x 400px</p>
           <file-upload @fileChanged="imageObj = $event" ref="fileUpload"></file-upload>
           <button type="button" name="Add image" @click="addImage" :disabled="imageObj === ''" class="btn btn-block">Add image</button>
         </accordion>
         <accordion title="Shapes" class="accordion-shapes">
+          <p>Add circles, squares, and custom shapes to your design</p>
           <button type="button" name="add-circle" @click="addShape('circle')" class="btn">
             <i class="fas fa-circle"></i> Add Circle
           </button>
@@ -30,7 +49,8 @@
           <button type="button" name="add-square" @click="addShape('rectangle')" class="btn">
             <i class="fas fa-square"></i> Add Square
           </button>
-          <h5>Add Polygons and Stars</h5>
+          <h5>Add Custom Polygons and Stars</h5>
+          <p>Adjust the number of corners then choose polygon or star to apply</p>
           <div class="form-group">
             <label for="corners">Number of Corners</label>
             <input type="number" name="corners" v-model="corners" class="form-control" />
@@ -56,12 +76,12 @@
             <i class="fas fa-sort-down"></i>
           </button>
           <button type="button" name="delete-object" title="Delete object" @click="removeObject" :disabled="!isActiveObject" class="btn">
-            <i class="fas fa-trash-alt"></i>
+            <i class="fas fa-trash-alt"></i> Delete Object
           </button>
           <button type="button" name="unselect-object" title="Delete object" @click="deselectObject" :disabled="!isActiveObject" class="btn">
             <i class="fas fa-hand-paper"></i> Release Object
           </button>
-          <button @click="save" type="button" title="Save Design" name="save" class="btn">Save</button>
+          <button @click="save" type="button" title="Save Design" name="save" class="btn">Save Design</button>
         </div>
         <h5 v-if="layers.length > 0" class="layers-title">Layers:</h5>
         <draggable v-model="layers" @start="drag = true" @end="handleLayerDragEnd">
@@ -367,6 +387,16 @@ export default {
 </script>
 
 <style>
+#quickStart{
+  background: #e6e6e6;
+  border-radius: 5px;
+  padding: 20px;
+  margin-bottom: 50px;
+  box-shadow: 5px 5px 5px rgba(0, 0, 0, .3);
+}
+#plainLink{
+  color: #006248;
+}
 #app {
   display: block;
   margin: 60px auto;
