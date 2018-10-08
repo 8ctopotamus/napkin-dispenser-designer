@@ -14,7 +14,7 @@
       <p>Need additional help getting started? Learn more in the <a href="#" id="plainLink">Ad Designer Guide</a></p>
     </div>
     <div v-if="showUI" class="row">
-      <div class="col-sm-12 col-md-6">
+      <div class="col-sm-12 col-md-5">
         <accordion title="Background">
           <p>Use the color picker to add a background color to your design</p>
           <chrome-picker :value="backgroundColor" @input="updateCanvasBackgroundColor"></chrome-picker>
@@ -31,16 +31,13 @@
           <label for="font-size">Font size</label>
           <input type="number" name="font-size" v-model="fontSize" class="form-control">
           <input type="range" name="font-size" v-model="fontSize">
-
-          <input type="radio" id="one" value="One" v-model="textAlign">
-          <label for="one">One</label>
-          <br>
-          <input type="radio" id="two" value="Two" v-model="textAlign">
-          <label for="two">Two</label>
-          <br>
-          <span>Picked: {{ textAlign }}</span>
-
-
+          <label>Text alignment</label>
+          <div class="btn-group" role="group" aria-label="Text alignment">
+            <button type="button" class="btn btn-secondary" :class="{active: textAlign === 'left'}" @click="textAlign = 'left'"><i class="fas fa-align-left"></i> <span class="sr-only">Left</span></button>
+            <button type="button" class="btn btn-secondary" :class="{active: textAlign === 'center'}" @click="textAlign = 'center'"><i class="fas fa-align-center"></i> <span class="sr-only">Center</span></button>
+            <button type="button" class="btn btn-secondary" :class="{active: textAlign === 'right'}" @click="textAlign = 'right'"><i class="fas fa-align-right"></i> <span class="sr-only">Right</span></button>
+          </div>
+          <label>Text color</label>
           <chrome-picker :value="textColor" @input="updateTextColor"></chrome-picker>
           <button @click="addText" type="button" name="add-text" class="btn btn-block">Add new text</button>
         </accordion>
@@ -76,7 +73,7 @@
           <chrome-picker :value="shapeColor" @input="updateShapeColor"></chrome-picker>
         </accordion>
       </div>
-      <div class="col-sm-12 col-md-6">
+      <div class="col-sm-12 col-md-7 text-center">
         <canvas ref="c1" id="c1" width="442" height="298"></canvas>
         <div class="canvas-toolbar">
           <button type="button" name="bring-forward" title="Bring forward" @click="sortLayerByArrow('up')" :disabled="!isActiveObject" class="btn">
@@ -86,7 +83,7 @@
             <i class="fas fa-sort-down"></i>
           </button>
           <button type="button" name="delete-object" title="Delete object" @click="removeObject" :disabled="!isActiveObject" class="btn">
-            <i class="fas fa-trash-alt"></i> Delete Object
+            <i class="fas fa-trash-alt"></i> Delete
           </button>
           <button type="button" name="unselect-object" title="Delete object" @click="deselectObject" :disabled="!isActiveObject" class="btn">
             <i class="fas fa-hand-paper"></i> Release Object
@@ -276,6 +273,7 @@ export default {
         fontFamily: this.fontFamily,
         fontSize: this.fontSize,
         fill: this.textColor,
+        textAlign: this.textAlign,
         left: 100,
         top: 100,
         id: generateId()
@@ -379,6 +377,13 @@ export default {
         this.canvas.renderAll()
       }
     },
+    textAlign: function(newVal, oldVal) {
+      const ao = this.canvas.getActiveObject()
+      if (ao && ao.type === 'i-text') {
+        ao.set('textAlign', this.textAlign)
+        this.canvas.renderAll()
+      }
+    },
     textColor: function(newVal, oldVal) {
       const ao = this.canvas.getActiveObject()
       if (ao && ao.type === 'i-text') {
@@ -398,6 +403,16 @@ export default {
 </script>
 
 <style>
+#app {
+  display: block;
+  margin: 60px auto;
+  max-width: 860px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+#app label {
+  display: block;
+}
 #quickStart{
   background: #e6e6e6;
   border-radius: 5px;
@@ -408,20 +423,10 @@ export default {
 #plainLink{
   color: #006248;
 }
-#app {
-  display: block;
-  margin: 60px auto;
-  max-width: 860px;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
-.add-column {
-  display: flex;
-  flex-direction: column;
-}
 canvas#c1 {
+  display: block;
   box-shadow: 0px 0px 6px rgba(0,0,0,.35);
-  margin-bottom: 25px;
+  margin: 0 auto 25px;
 }
 .canvas-toolbar {
   display: flex;
