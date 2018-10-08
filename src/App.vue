@@ -31,6 +31,16 @@
           <label for="font-size">Font size</label>
           <input type="number" name="font-size" v-model="fontSize" class="form-control">
           <input type="range" name="font-size" v-model="fontSize">
+
+          <input type="radio" id="one" value="One" v-model="textAlign">
+          <label for="one">One</label>
+          <br>
+          <input type="radio" id="two" value="Two" v-model="textAlign">
+          <label for="two">Two</label>
+          <br>
+          <span>Picked: {{ textAlign }}</span>
+
+
           <chrome-picker :value="textColor" @input="updateTextColor"></chrome-picker>
           <button @click="addText" type="button" name="add-text" class="btn btn-block">Add new text</button>
         </accordion>
@@ -182,6 +192,7 @@ export default {
         'Spectral',
       ],
       fontSize: 16,
+      textAlign: 'left',
       imageObj: '',
       isActiveObject: false,
       layers: [],
