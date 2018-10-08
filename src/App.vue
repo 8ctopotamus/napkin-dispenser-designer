@@ -18,6 +18,9 @@
         <accordion title="Background">
           <p>Use the color picker to add a background color to your design</p>
           <chrome-picker :value="backgroundColor" @input="updateCanvasBackgroundColor"></chrome-picker>
+          <br />
+          <p>Or choose a background image:</p>
+          <img v-for="(img, i) in backgroundImages" @click="addBackgroundImage(img)" class="background-image" :key="i" :src="img"  alt="background image" />
         </accordion>
         <accordion title="Text">
           <p>Enter your text, select your font, size, and color.</p>
@@ -164,6 +167,7 @@ export default {
   data () {
     return {
       backgroundColor: '#333333',
+      backgroundImages: [],
       corners: 3,
       drag: false,
       fontFamily: 'Lato',
@@ -188,7 +192,7 @@ export default {
         'Sarina',
         'Spectral',
       ],
-      fontSize: 16,
+      fontSize: 20,
       textAlign: 'left',
       imageObj: '',
       isActiveObject: false,
@@ -204,6 +208,10 @@ export default {
     this.canvas.setOverlayImage(require('./assets/art-boundaries.png'), this.canvas.renderAll.bind(this.canvas))
     this.canvas.on('mouse:down', this.checkActiveObject)
 
+    // load background images
+    this.loadBackgroundImages()
+
+    // media queries
     if (matchMedia) {
       this.mq = window.matchMedia("(min-width: 767px)")
       this.mq.addListener(this.widthChange)
@@ -214,6 +222,18 @@ export default {
     this.mq.removeListener(this.widthChange)
   },
   methods: {
+    addBackgroundImage (bgImage) {
+
+      const center = this.canvas.getCenter()
+      this.canvas.setBackgroundImage(bgImage, this.canvas.renderAll.bind(this.canvas), {
+        // scaleX: this.canvas.width / bgImage.width,
+        // scaleY: this.canvas.height / bgImage.height,
+        // top: center.top,
+        // left: center.left,
+        // originX: 'center',
+        // originY: 'center'
+      })
+    },
     addImage () {
       new fabric.Image.fromURL(this.imageObj, img => {
         this.canvas.add(img)
@@ -305,6 +325,22 @@ export default {
       this.deselectObject()
       this.canvas.renderAll()
       this.getLayers()
+    },
+    loadBackgroundImages() {
+      const fileNames = [
+        'beer.jpg',
+        'blueSkyBackground.jpg',
+        'cheeseburger.jpg',
+        'coffeeCup.jpg',
+        'mic.jpg',
+        'tablecloth.jpg',
+        'tableWithPlate.jpg',
+        'tableWithPlate2.jpg',
+        'wings.jpg'
+      ]
+      this.backgroundImages = fileNames.map(fileName => {
+        return require(`./assets/backgrounds/${fileName}`)
+      })
     },
     removeObject() {
       const ao = this.canvas.getActiveObject()
@@ -446,6 +482,11 @@ button {
 }
 button:disabled {
   opacity: 1;
+}
+.background-image {
+  display: block;
+  max-width: 100%;
+  cursor: pointer;
 }
 .layers-title {
   margin-top: 15px;
