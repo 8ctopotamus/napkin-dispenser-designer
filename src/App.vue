@@ -11,7 +11,7 @@
         <li>Print your design and place in your dispenser</li>
       </ol>
       <br>
-      <p>Need additional help getting started? Learn more in the <a href="#" id="plainLink">Ad Designer Guide</a></p>
+      <p>Need additional help getting started? Learn more in the <a href="https://powerspaper.com/powernap-ad-designer-guide/" id="plainLink">Ad Designer Guide</a></p>
     </div>
     <div v-if="showUI" class="row">
       <div class="col-sm-12 col-md-5">
@@ -20,7 +20,9 @@
           <chrome-picker :value="backgroundColor" @input="updateCanvasBackgroundColor"></chrome-picker>
           <br />
           <p>Or choose a background image:</p>
-          <img v-for="(img, i) in backgroundImages" @click="addBackgroundImage(img)" class="background-image" :key="i" :src="img"  alt="background image" />
+          <div id="imageWrapper">
+            <img v-for="(img, i) in backgroundImages" @click="addBackgroundImage(img)" class="background-image" :key="i" :src="img"  alt="background image" />
+          </div>
         </accordion>
         <accordion title="Text">
           <p>Enter your text, select your font, size, and color.</p>
@@ -458,6 +460,10 @@ export default {
 }
 #plainLink{
   color: #006248;
+}
+#imageWrapper{
+  height: 250px;
+  overflow: auto;
 }
 canvas#c1 {
   display: block;
