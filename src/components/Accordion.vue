@@ -1,6 +1,6 @@
 <template>
   <div class="accordion">
-    <h3 class="accordion-title" @click="open = !open">
+    <h3 class="accordion-title" @click="handleClick">
       {{title}}
       <i :class="['fas fa-chevron-circle-down', { 'flipped' : open }]"></i>
     </h3>
@@ -14,10 +14,17 @@
 
 <script>
 export default {
+  name: 'Accordion',
   props: ['title'],
   data () {
     return {
       open: false
+    }
+  },
+  methods: {
+    handleClick() {
+      this.$emit('accordion-clicked', this.title)
+      this.open = !this.open
     }
   }
 }

@@ -15,7 +15,7 @@
     </div>
     <div v-if="showUI" class="row">
       <div class="col-sm-12 col-md-5">
-        <accordion title="Background">
+        <accordion title="Background" @accordion-clicked="closeAllOtherAccordions($event)">
           <p>Use the color picker to add a background color to your design</p>
           <chrome-picker :value="backgroundColor" @input="updateCanvasBackgroundColor"></chrome-picker>
           <br />
@@ -24,7 +24,7 @@
             <img v-for="(img, i) in backgroundImages" @click="addBackgroundImage(img)" class="background-image" :key="i" :src="img"  alt="background image" />
           </div>
         </accordion>
-        <accordion title="Text">
+        <accordion title="Text" @accordion-clicked="closeAllOtherAccordions($event)">
           <p>Enter your text, select your font, size, and color.</p>
           <p>Add as many text elements as your design requires.</p>
           <label for="text">Text</label>
@@ -46,13 +46,13 @@
           <chrome-picker :value="textColor" @input="updateTextColor"></chrome-picker>
           <button @click="addText" type="button" name="add-text" class="btn btn-block">Add new text</button>
         </accordion>
-        <accordion title="Images">
+        <accordion title="Images"  @accordion-clicked="closeAllOtherAccordions($event)">
           <p>Upload an image into your design. Supported image formats are JPG and PNG.</p>
           <p>Recommended image size is 600px x 400px</p>
           <file-upload @fileChanged="imageObj = $event" ref="fileUpload"></file-upload>
           <button type="button" name="Add image" @click="addImage" :disabled="imageObj === ''" class="btn btn-block">Add image</button>
         </accordion>
-        <accordion title="Shapes" class="accordion-shapes">
+        <accordion title="Shapes" class="accordion-shapes"  @accordion-clicked="closeAllOtherAccordions($event)">
           <p>Add circles, squares, and custom shapes to your design</p>
           <button type="button" name="add-circle" @click="addShape('circle')" class="btn">
             <i class="fas fa-circle"></i> Add Circle
@@ -224,17 +224,14 @@ export default {
     this.mq.removeListener(this.widthChange)
   },
   methods: {
+    closeAllOtherAccordions (title) {
+      const otherAccordions = this.$children
+        .filter(child => child.$options.name === 'Accordion' && child.$options.propsData.title !== title)
+        .forEach(acc => acc.open = false)
+    },
     addBackgroundImage (bgImage) {
-
       const center = this.canvas.getCenter()
-      this.canvas.setBackgroundImage(bgImage, this.canvas.renderAll.bind(this.canvas), {
-        // scaleX: this.canvas.width / bgImage.width,
-        // scaleY: this.canvas.height / bgImage.height,
-        // top: center.top,
-        // left: center.left,
-        // originX: 'center',
-        // originY: 'center'
-      })
+      this.canvas.setBackgroundImage(bgImage, this.canvas.renderAll.bind(this.canvas))
     },
     addImage () {
       new fabric.Image.fromURL(this.imageObj, img => {
