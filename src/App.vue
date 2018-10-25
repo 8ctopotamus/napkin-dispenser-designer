@@ -11,7 +11,7 @@
         <li>Print your design and place in your dispenser</li>
       </ol>
       <br>
-      <p>Need additional help getting started? Learn more in the <a href="https://powerspaper.com/powernap-ad-designer-guide/" id="plainLink">Ad Designer Guide</a></p>
+      <p>Need additional help getting started? Learn more in the <a href="https://powerspaper.com/powernap-ad-designer-guide/" id="plainLink" target="_blank">Ad Designer Guide</a></p>
     </div>
     <div v-if="showUI" class="row">
       <div class="col-sm-12 col-md-5">
