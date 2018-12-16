@@ -329,12 +329,17 @@ export default {
       const fileNames = [
         'beer.jpg',
         'blueSkyBackground.jpg',
+        'bowlingAlley.jpg',
         'cheeseburger.jpg',
         'coffeeCup.jpg',
+        'frenchFries.jpg',
+        'iceCreamFullBackground.jpg',
+        'iceCreamConeWBackground.jpg',
         'mic.jpg',
+        'popcornBackground.jpg',
         'tablecloth.jpg',
         'tableWithPlate.jpg',
-        'tableWithPlate2.jpg',
+        'theaterCurtain.png',
         'wings.jpg'
       ]
       this.backgroundImages = fileNames.map(fileName => {
